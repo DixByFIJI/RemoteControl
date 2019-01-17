@@ -8,12 +8,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class Requests extends ConnectorMySQL {
-    private String TAG = "ExecuteQuery";
+    private String TAG = "executeQuery";
 
     private ResultSet DB_RESULTSET;
 
     public String makeQuery(String key, String command){
-        String query = "INSERT INTO" + DB_NAME + "(unique_key, command) VALUES ('" + Hashing.sha256(key) + "', '" + Hashing.sha256(command) + "')";
+        String query = "INSERT INTO " + DB_TABLE + " (unique_key, command) VALUES ('" + Hashing.sha256(key) + "', '" + Hashing.sha256(command) + "')";
+        Log.d(TAG, query);
         return query;
     }
 

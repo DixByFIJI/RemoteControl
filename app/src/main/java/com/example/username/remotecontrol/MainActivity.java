@@ -17,11 +17,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.username.remotecontrol.actions.Requests;
+
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myLogs";
 
+    private static Requests REQUEST;
     private static MediaRecorder MEDIA_RECORDER;
     private static MediaPlayer MEDIA_PLAYER;
     private static String FILE_NAME;
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
                     try{
                         if(MEDIA_RECORDER != null) {
                             MEDIA_RECORDER.stop();
+                            REQUEST = new Requests();
+                            REQUEST.execute(REQUEST.makeQuery("123", "Command"));
                         }
                     } catch (Exception e){
                         Log.d(TAG, "Recording stop exception", e);
