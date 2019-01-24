@@ -7,12 +7,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public abstract class ConnectorMySQL {
+public class ConnectorMySQL {
     private final String TAG = "connectionMySQL";
 
     private final String DB_LOGIN = "root";
-    private final String DB_PASSWORD = "root";
-    private final String DB_URL = "jdbc:mysql://mysql.zzz.com.ua:3306/";
+    private final String DB_PASSWORD = "";
+    private final String DB_URL = "jdbc:mysql://localhost:3306/";
     private final String DB_TIME_ZONE = "?serverTimezone=UTC&useSSL=false";
     protected final String DB_NAME = "remotecontrol";
     protected final String DB_TABLE = "commands";
@@ -32,7 +32,6 @@ public abstract class ConnectorMySQL {
             DB_STATEMENT = DB_CONNECTION.createStatement();
             DB_STATEMENT.execute("set character set utf8");
             DB_STATEMENT.execute("set names utf8");
-            Log.d("connectionMySQL", "Connection is setup");
         } catch (SQLException e) {
             Log.d(TAG, "Connection to MySQL-database exception", e);
         }

@@ -1,0 +1,110 @@
+[33mcommit 4eeb1f230ce94d93e5ae716df409a39d2ab29b6f[m[33m ([m[1;36mHEAD -> [m[1;32motherLine[m[33m)[m
+Author: Vladislav <mandarineye@gmail.com>
+Date:   Fri Jan 18 15:17:36 2019 +0200
+
+    Fixed bugs
+
+[1mdiff --git a/app/build.gradle b/app/build.gradle[m
+[1mindex 14ee85f..339f377 100644[m
+[1m--- a/app/build.gradle[m
+[1m+++ b/app/build.gradle[m
+[36m@@ -25,5 +25,5 @@[m [mdependencies {[m
+     testImplementation 'junit:junit:4.12'[m
+     androidTestImplementation 'com.android.support.test:runner:1.0.2'[m
+     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'[m
+[31m-    implementation project(':mysql-connector-java-5.1.47')[m
+[32m+[m[32m    implementation files('libs/mysql-connector-java-8.0.13.jar')[m
+ }[m
+[1mdiff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml[m
+[1mindex 824630e..81a3f7e 100644[m
+[1m--- a/app/src/main/AndroidManifest.xml[m
+[1m+++ b/app/src/main/AndroidManifest.xml[m
+[36m@@ -2,6 +2,10 @@[m
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"[m
+     package="com.example.username.remotecontrol">[m
+ [m
+[32m+[m[32m    <uses-permission android:name="android.permission.INTERNET" />[m
+[32m+[m[32m    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />[m
+[32m+[m
+[32m+[m
+     <uses-permission android:name="android.permission.RECORD_AUDIO"></uses-permission>[m
+     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"></uses-permission>[m
+ [m
+[1mdiff --git a/app/src/main/java/com/example/username/remotecontrol/connections/ConnectorMySQL.java b/app/src/main/java/com/example/username/remotecontrol/connections/ConnectorMySQL.java[m
+[1mindex 70c6967..2bb836e 100644[m
+[1m--- a/app/src/main/java/com/example/username/remotecontrol/connections/ConnectorMySQL.java[m
+[1m+++ b/app/src/main/java/com/example/username/remotecontrol/connections/ConnectorMySQL.java[m
+[36m@@ -10,22 +10,29 @@[m [mimport java.sql.Statement;[m
+ public abstract class ConnectorMySQL {[m
+     private final String TAG = "connectionMySQL";[m
+ [m
+[31m-    private final String DB_LOGIN = "diagoby";[m
+[31m-    private final String DB_PASSWORD = "Cmdsdb1";[m
+[32m+[m[32m    private final String DB_LOGIN = "root";[m
+[32m+[m[32m    private final String DB_PASSWORD = "root";[m
+     private final String DB_URL = "jdbc:mysql://mysql.zzz.com.ua:3306/";[m
+     private final String DB_TIME_ZONE = "?serverTimezone=UTC&useSSL=false";[m
+[31m-    protected final String DB_NAME = "diagoby";[m
+[32m+[m[32m    protected final String DB_NAME = "remotecontrol";[m
+     protected final String DB_TABLE = "commands";[m
+ [m
+     private Connection DB_CONNECTION;[m
+     protected Statement DB_STATEMENT;[m
+ [m
+     public ConnectorMySQL() {[m
+[32m+[m[32m        try {[m
+[32m+[m[32m            Class.forName("com.mysql.jdbc.Driver");[m
+[32m+[m[32m            Log.d(TAG, "Driver is already");[m
+[32m+[m[32m        } catch (Exception e) {[m
+[32m+[m[32m            Log.d(TAG, "JDBC driver exception", e);[m
+[32m+[m[32m        }[m
+         try {[m
+             DB_CONNECTION = DriverManager.getConnection(DB_URL + DB_NAME + DB_TIME_ZONE, DB_LOGIN, DB_PASSWORD);[m
+             DB_STATEMENT = DB_CONNECTION.createStatement();[m
+             DB_STATEMENT.execute("set character set utf8");[m
+             DB_STATEMENT.execute("set names utf8");[m
+[32m+[m[32m            Log.d("connectionMySQL", "Connection is setup");[m
+         } catch (SQLException e) {[m
+             Log.d(TAG, "Connection to MySQL-database exception", e);[m
+         }[m
+[1mdiff --git a/build.gradle b/build.gradle[m
+[1mindex ecd5a7e..3d1d062 100644[m
+[1m--- a/build.gradle[m
+[1m+++ b/build.gradle[m
+[36m@@ -6,7 +6,7 @@[m [mbuildscript {[m
+         jcenter()[m
+     }[m
+     dependencies {[m
+[31m-        classpath 'com.android.tools.build:gradle:3.2.1'[m
+[32m+[m[32m        classpath 'com.android.tools.build:gradle:3.3.0'[m
+ [m
+         // NOTE: Do not place your application dependencies here; they belong[m
+         // in the individual module build.gradle files[m
+[1mdiff --git a/gradle/wrapper/gradle-wrapper.properties b/gradle/wrapper/gradle-wrapper.properties[m
+[1mindex 9a4163a..a7c933f 100644[m
+[1m--- a/gradle/wrapper/gradle-wrapper.properties[m
+[1m+++ b/gradle/wrapper/gradle-wrapper.properties[m
+[36m@@ -1,5 +1,6 @@[m
+[32m+[m[32m#Fri Jan 18 11:17:17 EET 2019[m
+ distributionBase=GRADLE_USER_HOME[m
+ distributionPath=wrapper/dists[m
+[31m-distributionUrl=https\://services.gradle.org/distributions/gradle-4.6-all.zip[m
+ zipStoreBase=GRADLE_USER_HOME[m
+ zipStorePath=wrapper/dists[m
+[32m+[m[32mdistributionUrl=https\://services.gradle.org/distributions/gradle-4.10.1-all.zip[m
+[1mdiff --git a/mysql-connector-java-5.1.47/build.gradle b/mysql-connector-java-5.1.47/build.gradle[m
+[1mdeleted file mode 100644[m
+[1mindex 23f5d70..0000000[m
+[1m--- a/mysql-connector-java-5.1.47/build.gradle[m
+[1m+++ /dev/null[m
+[36m@@ -1,2 +0,0 @@[m
+[31m-configurations.maybeCreate("default")[m
+[31m-artifacts.add("default", file('mysql-connector-java-5.1.47.jar'))[m
+\ No newline at end of file[m
+[1mdiff --git a/settings.gradle b/settings.gradle[m
+[1mindex 82812a3..e7b4def 100644[m
+[1m--- a/settings.gradle[m
+[1m+++ b/settings.gradle[m
+[36m@@ -1 +1 @@[m
+[31m-include ':app', ':mysql-connector-java-5.1.47'[m
+[32m+[m[32minclude ':app'[m

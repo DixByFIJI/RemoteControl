@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.username.remotecontrol.actions.Requests;
+import com.example.username.remotecontrol.connections.ConnectorMySQL;
 
 import java.util.UUID;
 
