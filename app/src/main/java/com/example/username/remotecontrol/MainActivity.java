@@ -18,7 +18,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.username.remotecontrol.actions.Requests;
-import com.example.username.remotecontrol.connections.ConnectorMySQL;
 
 import java.util.UUID;
 
@@ -71,8 +70,9 @@ public class MainActivity extends AppCompatActivity {
                     try{
                         if(MEDIA_RECORDER != null) {
                             MEDIA_RECORDER.stop();
+
                             REQUEST = new Requests();
-                            REQUEST.execute(REQUEST.makeQuery("123", "Command"));
+                            REQUEST.execute("Make me happy");
                         }
                     } catch (Exception e){
                         Log.d(TAG, "Recording stop exception", e);
