@@ -2,6 +2,7 @@ package com.example.username.remotecontrol;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
@@ -59,7 +60,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if(txtIPAddress.getText().toString().matches("((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2}))\\.){3}((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2})))")){
-                    txtIPAddress;
+                    txtIPAddress.setTextColor(Color.parseColor("#e51e2b"));
+                } else {
+                    txtIPAddress.setTextColor(Color.parseColor("#689eb8"));
                 }
             }
 
