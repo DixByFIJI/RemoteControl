@@ -4,22 +4,14 @@ import android.util.Log;
 
 import com.example.username.remotecontrol.connections.ConnectionTCP_IP;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 
 public class Requests extends ConnectionTCP_IP {
     private String TAG = "Requests";
 
-    private DataInputStream DATA_INPUT;
-    private DataOutputStream DATA_OUTPUT;
-
     public void execute(String command){
         try {
-            DATA_INPUT = new DataInputStream(INPUT_STREAM);
-            DATA_OUTPUT = new DataOutputStream(OUTPUT_STREAM);
-
-            DATA_OUTPUT.writeUTF(Hashing.sha256(command));
+            DATA_OUTPUT_STREAM.writeUTF(Hashing.sha256(command));
         } catch (IOException e) {
             Log.d(TAG, "Executing IOException");
         }

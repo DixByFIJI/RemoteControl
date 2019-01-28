@@ -2,6 +2,7 @@ package com.example.username.remotecontrol;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
@@ -10,10 +11,13 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,11 +44,30 @@ public class MainActivity extends AppCompatActivity {
     public void addListener(){
         final Button btnEnter = (Button)findViewById(R.id.btnEnter);
         final Button btnPlay = (Button)findViewById(R.id.btnPlay);
-        final TextView txtOutput = (TextView)findViewById(R.id.txtOutput);
+        final EditText txtIPAddress = (EditText)findViewById(R.id.txtIPAddress);
+        final EditText txtPort = (EditText)findViewById(R.id.txtPort);
 
         //Request Runtime Permission
         if(!checkPermissionFromDevice()) requestPermission();
 
+        txtIPAddress.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(txtIPAddress.getText().toString().matches("((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2}))\\.){3}((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2})))")){
+                    txtIPAddress;
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         btnEnter.setOnTouchListener(new View.OnTouchListener() {
             @Override

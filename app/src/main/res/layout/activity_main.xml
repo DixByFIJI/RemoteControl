@@ -21,20 +21,36 @@
         app:layout_constraintVertical_bias="0.469" />
 
     <EditText
-        android:id="@+id/txtKey"
+        android:id="@+id/txtIPAddress"
         android:layout_width="500px"
         android:layout_height="100px"
         android:background="@drawable/fields"
         android:ems="10"
-        android:hint="Key"
+        android:hint="IP Address"
         android:padding="20px"
         android:textColor="#689eb8"
         app:layout_constraintBottom_toTopOf="@+id/btnEnter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.685" />
+        app:layout_constraintVertical_bias="0.48" />
+
+    <EditText
+        android:id="@+id/txtPort"
+        android:layout_width="500px"
+        android:layout_height="100px"
+        android:background="@drawable/fields"
+        android:maxLength="5"
+        android:ems="10"
+        android:hint="Port"
+        android:padding="20px"
+        android:textColor="#689eb8"
+        app:layout_constraintBottom_toTopOf="@+id/btnEnter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.765" />
 
     <TextView
         android:id="@+id/txtOutput"
@@ -58,7 +74,7 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnEnter"
-        app:layout_constraintVertical_bias="0.264" />
+        app:layout_constraintVertical_bias="0.218" />
 
     <android.support.constraint.Barrier
         android:id="@+id/barrier"
