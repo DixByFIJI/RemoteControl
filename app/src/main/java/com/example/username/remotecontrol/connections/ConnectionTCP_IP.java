@@ -7,14 +7,14 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
-public class ConnectionTCP_IP {
+public abstract class ConnectionTCP_IP {
     private final String TAG = "ConnectionTCP_IP";
 
-    private final int PORT = 3000;
-    private final String HOST = "192.168.43.207";
+    private int PORT;
+    private String HOST;
 
     private Socket CLIENT;
 
@@ -24,10 +24,23 @@ public class ConnectionTCP_IP {
     protected DataInputStream DATA_INPUT_STREAM;
     protected DataOutputStream DATA_OUTPUT_STREAM;
 
-    public ConnectionTCP_IP(){
+    public ConnectionTCP_IP(String host, int port){
+        this.HOST = host;
+        this.PORT = port;
+
+        connect();
+    }
+
+    /**
+     * Connects to remote server with the help of Socket by IPAddress of host and TCP-Port
+     */
+
+    private void connect() {
         Thread flow = new Thread(() -> {
             try{
-                CLIENT = new Socket(InetAddress.getByName(HOST), PORT);
+//                CLIENT = new Socket(InetAddress.getByName(HOST), PORT);
+                CLIENT = new Socket();
+                CLIENT.connect(new InetSocketAddress(HOST, PORT));
 
                 INPUT_STREAM = CLIENT.getInputStream();
                 OUTPUT_STREAM = CLIENT.getOutputStream();
@@ -45,9 +58,9 @@ public class ConnectionTCP_IP {
         } catch (InterruptedException e) {
             Log.d(TAG, "Thread running exception", e);
         }
-
-        Log.d(TAG, String.valueOf(DATA_OUTPUT_STREAM == null));
     }
+
+    protected abstract void execute(String command);
 
 //    private final String DB_LOGIN = "root";
 //    private final String DB_PASSWORD = "qwe123";

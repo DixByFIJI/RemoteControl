@@ -9,6 +9,17 @@ import java.io.IOException;
 public class Requests extends ConnectionTCP_IP {
     private String TAG = "Requests";
 
+    public Requests(String host, int port) {
+        super(host, port);
+    }
+
+    /**
+     * Executes the request to remote server
+     * @param command instruction for executing (String value)
+     * @see com.example.username.remotecontrol.connections.ConnectionTCP_IP
+     */
+
+    @Override
     public void execute(String command){
         try {
             DATA_OUTPUT_STREAM.writeUTF(Hashing.sha256(command));

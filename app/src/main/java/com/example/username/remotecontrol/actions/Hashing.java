@@ -7,6 +7,13 @@ import java.security.MessageDigest;
 
 public abstract class Hashing {
     private final static String TAG = "Hashing";
+
+    /**
+     * Makes the hash-representation of input value
+     * @param input String value for hashing
+     * @return hash-representation of input
+     */
+
     public static String sha256(String input){
         try {
             MessageDigest SHA256 =  MessageDigest.getInstance("SHA-256");

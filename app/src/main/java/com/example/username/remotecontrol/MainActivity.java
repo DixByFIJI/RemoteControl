@@ -53,23 +53,19 @@ public class MainActivity extends AppCompatActivity {
 
         txtIPAddress.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(txtIPAddress.getText().toString().matches("((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2}))\\.){3}((([1-9]\\d?|\\d)|(1\\d\\d)|(2[0-5]{2})))")){
-                    txtIPAddress.setTextColor(Color.parseColor("#e51e2b"));
-                } else {
+                if(txtIPAddress.getText().toString().matches("(((\\d|\\d?)|(1\\d\\d)|(2[0-5]{2}))\\.){3}(((\\d|\\d?)|(1\\d\\d)|(2[0-5]{2})))")){
                     txtIPAddress.setTextColor(Color.parseColor("#689eb8"));
+                } else {
+                    txtIPAddress.setTextColor(Color.parseColor("#e51e2b"));
                 }
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) {}
         });
 
         btnEnter.setOnTouchListener(new View.OnTouchListener() {
@@ -97,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                         if(MEDIA_RECORDER != null) {
                             MEDIA_RECORDER.stop();
 
-                            REQUEST = new Requests();
+                            REQUEST = new Requests(txtIPAddress.getText().toString(), Integer.parseInt(txtPort.getText().toString()));
                             REQUEST.execute("Make me happy");
                         }
                     } catch (Exception e){
@@ -133,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Setups parameters for MediaRecorder
+     * Setups parameters for MediaRecorder instance
      */
 
     private static void setupMediaRecorder() {

@@ -40,7 +40,7 @@
         android:layout_width="500px"
         android:layout_height="100px"
         android:background="@drawable/fields"
-        android:maxLength="5"
+        android:maxLength="6"
         android:ems="10"
         android:hint="Port"
         android:padding="20px"
