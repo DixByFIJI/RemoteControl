@@ -1,0 +1,23 @@
+#JSGF V1.0;
+
+grammar mygrammar;
+
+public <start> = start;
+
+public <pausa> = pausa;
+
+public <tishe> = tishe;
+public <gromche> = gromche;
+
+public <switch> = (plus|minus)(number1|number3|number10|number30);
+
+public <find> = iskat;
+public <changeartist> = <find>(cranberries|kinoproby|nautilus|rammstein|snaipery);
+
+#JSGF V1.0;
+grammar commands;
+public <command> = <commands>+;
+<commands> = лапма | монитор | температура;
+
+public <mute> = вимкни звук
+public <unmute> = увімкни звук

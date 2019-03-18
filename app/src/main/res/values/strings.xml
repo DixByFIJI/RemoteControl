@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RemoteControl</string>
+    <string name="btnRecordText">RECORD</string>
 </resources>

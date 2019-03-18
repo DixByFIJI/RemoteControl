@@ -8,22 +8,25 @@
 
     <Button
         android:id="@+id/btnEnter"
-        android:layout_width="300px"
-        android:layout_height="300px"
+        android:layout_width="400px"
+        android:layout_height="400px"
         android:background="@drawable/button"
-        android:text="RECORD"
+        android:text="@string/btnRecordText"
         android:textColor="@color/textColor"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.469" />
+        app:layout_constraintTop_toTopOf="@+id/imgLogo"
+        app:layout_constraintVertical_bias="0.654" />
 
     <EditText
         android:id="@+id/txtIPAddress"
-        android:layout_width="500px"
-        android:layout_height="100px"
+        android:layout_width="210dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/fields"
         android:ems="10"
         android:hint="IP Address"
@@ -31,26 +34,9 @@
         android:textColor="#689eb8"
         app:layout_constraintBottom_toTopOf="@+id/btnEnter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.48" />
-
-    <EditText
-        android:id="@+id/txtPort"
-        android:layout_width="500px"
-        android:layout_height="100px"
-        android:background="@drawable/fields"
-        android:maxLength="6"
-        android:ems="10"
-        android:hint="Port"
-        android:padding="20px"
-        android:textColor="#689eb8"
-        app:layout_constraintBottom_toTopOf="@+id/btnEnter"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.765" />
+        app:layout_constraintTop_toBottomOf="@+id/imgLogo" />
 
     <TextView
         android:id="@+id/txtOutput"
@@ -64,22 +50,18 @@
         app:layout_constraintTop_toBottomOf="@+id/btnEnter"
         app:layout_constraintVertical_bias="0.199" />
 
-    <Button
-        android:id="@+id/btnPlay"
-        android:layout_width="88dp"
-        android:layout_height="52dp"
-        android:text="PLAY"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnEnter"
-        app:layout_constraintVertical_bias="0.218" />
-
-    <android.support.constraint.Barrier
-        android:id="@+id/barrier"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:id="@+id/imgLogo"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:barrierDirection="left" />
+        android:layout_marginStart="55dp"
+        android:layout_marginLeft="55dp"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="55dp"
+        android:layout_marginRight="55dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/logo" />
 
 </android.support.constraint.ConstraintLayout>
