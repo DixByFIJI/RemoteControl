@@ -1,6 +1,7 @@
 
 package com.example.username.remotecontrol.connections;
 
+import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -42,26 +43,18 @@ public class ClientSocketConnection {
 
     /**
      * Connects to remote server with help of Socket by IPAddress of host and TCP-Port and exetutes the request to remote server
-     * @param command instruction for executing (String value)
      */
 
     public boolean connect(){
-        Boolean isExecuted = false;
+        Boolean isConnected = false;
 
         FutureTask<Boolean> task = new FutureTask(new Callable<Boolean>() {
             @Override
             public Boolean call() {
                 try {
                     client = new Socket();
-                    client.connect(new InetSocketAddress(host, port), 3000);
-                    inputStream = client.getInputStream();
-                    outputStream = client.getOutputStream();
-
-//                    PrintWriter printWriter = new PrintWriter(outputStream, true);
-//                    printWriter.println(command);
-//                    printWriter.close();
+                    client.connect(new InetSocketAddress(host, port), 500);
                 } catch (IOException ex) {
-                    //Toast.makeText(, "Incorrect IP-Address", Toast.LENGTH_SHORT).show();
                     Log.d(TAG, "Client socket exception", ex);
                     return false;
                 }
@@ -71,24 +64,52 @@ public class ClientSocketConnection {
 
         Thread flow = new Thread(task);
         flow.start();
-        try {
-            flow.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         try {
-            isExecuted = task.get();
+            isConnected = task.get();
         } catch (ExecutionException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        return isExecuted;
+
+
+//        AsyncTask<Void, Void, Boolean> asyncProcess = new AsyncTask<Void, Void, Boolean>() {
+//            @Override
+//            protected Boolean doInBackground(Void... voids) {
+//                try {
+//                    client = new Socket();
+//                    client.connect(new InetSocketAddress(host, port), 1000);
+//                } catch (IOException ex) {
+//                    Log.d(TAG, "Client socket exception", ex);
+//                    return false;
+//                }
+//                return true;
+//            }
+//        };
+//
+//        asyncProcess.execute();
+//
+//        try {
+//            isConnected = asyncProcess.get();
+//        } catch (ExecutionException e) {
+//            e.printStackTrace();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+        return isConnected;
     }
 
-    public OutputStream getOutputStream() {
-        return outputStream;
+    public Socket getClientSocket(){
+        return client;
     }
+
+//    public OutputStream getOutputStream() {
+//        return outputStream;
+//    }
+//
+//    public InputStream getInputStream() {
+//        return inputStream;
+//    }
 }
 

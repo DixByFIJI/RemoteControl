@@ -1,16 +1,17 @@
 package com.example.username.remotecontrol;
 
 import android.Manifest;
-import android.app.Activity;
-import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
-import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -20,17 +21,19 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.username.remotecontrol.actions.Request;
 import com.example.username.remotecontrol.connections.ClientSocketConnection;
+import com.example.username.remotecontrol.connections.NetworkServices;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Locale;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myLogs";
@@ -47,35 +50,44 @@ public class MainActivity extends AppCompatActivity {
     private static boolean HOST_IS_CORRECT;
 
     private static String PACKAGE;
-    private static DataSource dataSource;
+
+    private static volatile ClientSocketConnection client;
 
     EditText txtIPAddress;
+    ImageButton btnRecord;
+
+    private static Context mainContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mainContext = getApplicationContext();
         addListener();
         PACKAGE = getPackageName();
-        //dataSource = new DataSource(this);
     }
 
     public void addListener(){
-
-        final Button btnEnter = (Button)findViewById(R.id.btnEnter);
+        Log.d(TAG, getPackageName());
+        btnRecord = (ImageButton)findViewById(R.id.btnRecord);
         txtIPAddress = (EditText)findViewById(R.id.txtIPAddress);
 
-//        try {
-//            InetAddress inet = InetAddress.getLocalHost();
-//            InetAddress[] ips = InetAddress.getAllByName(inet.getCanonicalHostName());
-//			if (ips  != null ) {
-//				for (int i = 0; i < ips.length; i++) {
-//					Log.d(TAG, ips[i].getHostName());
-//				}
-//			}
-//		} catch (UnknownHostException e) {
-//
-//		}
+        AsyncTask<Void, Void, List<String>> scanningTask = new AsyncTask<Void, Void, List<String>>() {
+            @Override
+            protected List<String> doInBackground(Void... voids) {
+                NetworkServices services = new NetworkServices(getApplicationContext());
+                return services.discoveryServices();
+            }
+
+            @Override
+            protected void onPostExecute(List<String> devices) {
+                for (String device : devices) {
+                    Log.d(TAG, device);
+                }
+            }
+        };
+
+        scanningTask.execute();
 
         //Request Runtime Permission
         if(!checkPermissionFromDevice()) requestPermission();
@@ -99,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        btnEnter.setOnTouchListener(new View.OnTouchListener() {
+        btnRecord.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
@@ -111,59 +123,14 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(getApplicationContext(), "Incorrect host", Toast.LENGTH_SHORT).show();
                             Log.d(TAG, "Incorrect host");
                         }
-//                        FILE_NAME = Environment.getExternalStorageDirectory().
-//                                getAbsolutePath() + "/"
-//                                + UUID.randomUUID().toString() + "_audio_record.3gp";
-//
-//                        setupMediaRecorder();
-//
-//                        try {
-//                            MEDIA_RECORDER.prepare();
-//                            MEDIA_RECORDER.start();
-//                        } catch (Exception e){
-//                            Log.d(TAG, "Recording start exception", e);
-//                        }
                     } else {
                         requestPermission();
                     }
                 } else if(event.getAction() == MotionEvent.ACTION_UP){
-//                    try{
-//                        if(MEDIA_RECORDER != null) {
-//                            MEDIA_RECORDER.stop();
-//
-////                            REQUEST = new Requests(txtIPAddress.getText().toString(), Integer.parseInt(txtPort.getText().toString()));
-////                            REQUEST.execute("Make me happy");
-//                        }
-//                    } catch (Exception e){
-//                        Log.d(TAG, "Recording stop exception", e);
-//                    }
                 }
                 return false;
             }
         });
-
-//        btnPlay.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                if(event.getAction() == MotionEvent.ACTION_DOWN){
-//                    MEDIA_PLAYER = new MediaPlayer();
-//                    try {
-//                        MEDIA_PLAYER.setDataSource(FILE_NAME);
-//                        MEDIA_PLAYER.prepare();
-//                        MEDIA_PLAYER.start();
-//                    } catch (Exception e){
-//                        e.printStackTrace();
-//                    }
-//                } else if(event.getAction() == MotionEvent.ACTION_UP){
-//                    if(MEDIA_PLAYER != null){
-//                        MEDIA_PLAYER.stop();
-//                        MEDIA_PLAYER.release();
-//                        setupMediaRecorder();
-//                    }
-//                }
-//                return false;
-//            }
-//        });
     }
 
     /**
@@ -171,62 +138,92 @@ public class MainActivity extends AppCompatActivity {
      */
 
     private void speechRecognition(){
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, new Locale("ru", ""));
-
-        try{
-            startActivityForResult(intent,REQUEST_RECOGNITION_CODE);
-        } catch (ActivityNotFoundException ex){
-            String appPackageName = this.getPackageName();
-            Log.d(TAG, appPackageName);
-
-            try {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appPackageName)));
-            } catch (android.content.ActivityNotFoundException anfe) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+        client = new ClientSocketConnection(txtIPAddress.getText().toString());
+        AsyncTask<Void, Void, Boolean> connectionTask = new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                return client.connect();
             }
 
-            Toast.makeText(getApplicationContext(),"Intent problem", Toast.LENGTH_SHORT).show();
-            Log.d(TAG, "Intent problem", ex);
-        }
-    }
+            @Override
+            protected void onPostExecute(Boolean isConnected) {
+                if(isConnected){
+                    Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                    intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                    //intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, new Locale("ru", ""));
+                    SpeechRecognizer recognizer = SpeechRecognizer.createSpeechRecognizer(getApplicationContext());
+                    recognizer.setRecognitionListener(new RecognitionListener() {
+                        @Override
+                        public void onReadyForSpeech(Bundle params) {
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == REQUEST_RECOGNITION_CODE && resultCode == RESULT_OK && data != null){
-            Thread process = new Thread(() -> {
-                ClientSocketConnection client = new ClientSocketConnection(txtIPAddress.getText().toString());
-                if(client.connect()){
-                    ArrayList<String> arrOfResults = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                    String command = arrOfResults.get(0);
+                        }
 
-                    Request query = new Request(client.outputStream);
-                    query.execute(command);
+                        @Override
+                        public void onBeginningOfSpeech() {
+                            btnRecord.setImageResource(R.drawable.wave);
+                        }
+
+                        @Override
+                        public void onRmsChanged(float rmsdB) {
+
+                        }
+
+                        @Override
+                        public void onBufferReceived(byte[] buffer) {
+
+                        }
+
+                        @Override
+                        public void onEndOfSpeech() {
+                            btnRecord.setImageResource(R.drawable.microphone);
+                        }
+
+                        @Override
+                        public void onError(int error) {
+
+                        }
+
+                        @Override
+                        public void onPartialResults(Bundle partialResults) {
+
+                        }
+
+                        @Override
+                        public void onEvent(int eventType, Bundle params) {}
+
+                        @Override
+                        public void onResults(Bundle results) {
+                            String result = null;
+                            ArrayList<String> arrOfResults = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                            result = String.join(" ", arrOfResults);
+
+                            String command = arrOfResults.get(0);
+
+                            Request query = new Request(client.getClientSocket());
+                            String message = null;
+                            try {
+                                message = query.execute(command);
+                            } catch (IOException e) {
+                                message = "Execution interrupted...";
+                                Log.d(TAG, message, e);
+                            }
+
+                            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    recognizer.startListening(intent);
                 } else {
                     Toast.makeText(getApplicationContext(), "Incorrect IP-Address", Toast.LENGTH_SHORT).show();
                 }
-            });
+            }
+        };
 
-            process.start();
-        }
+        connectionTask.execute();
     }
 
     /**
-     * Setups parameters for MediaRecorder instance
-     */
-
-    private static void setupMediaRecorder() {
-        MEDIA_RECORDER = new MediaRecorder();
-        MEDIA_RECORDER.setAudioSource(MediaRecorder.AudioSource.MIC);
-        MEDIA_RECORDER.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-        MEDIA_RECORDER.setAudioEncoder(MediaRecorder.OutputFormat.AMR_NB);
-        MEDIA_RECORDER.setOutputFile(FILE_NAME);
-    }
-
-    /**
-     * Executes request for getting permission
+     * Executes a request for getting permission
      */
 
     private void requestPermission() {
@@ -250,8 +247,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Checks getting permission from device
-     *
+     * Checks a getting permission from device
      * @return {@code true} if permission has been received
      */
 
@@ -263,5 +259,48 @@ public class MainActivity extends AppCompatActivity {
                record_audio_result == PackageManager.PERMISSION_GRANTED &&
                read_external_storage_result == PackageManager.PERMISSION_GRANTED;
     }
+
+    public static Context getMainContext(){
+        return mainContext;
+    }
+
+//    private static class NetworkSniffTask extends AsyncTask<Void, Void, Void> {
+//        private static final String TAG = "NetworkSniffTask";
+//        private Context localContext;
+//
+//        private NetworkSniffTask(Context context) {
+//            localContext = context;
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void ... voids) {
+//            Log.e(TAG, "Let's sniff the network");
+//            try {
+//                Context context = localContext;
+//                if (context != null) {
+//                    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+//                    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+//                    WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+//                    WifiInfo connectionInfo = wm.getConnectionInfo();
+//                    int ipAddress = connectionInfo.getIpAddress();
+//                    String ipString = Formatter.formatIpAddress(ipAddress);
+//                    Log.e(TAG, "activeNetwork: " + String.valueOf(activeNetwork));
+//                    Log.e(TAG, "ipString: " + String.valueOf(ipString));
+//                    String prefix = ipString.substring(0, ipString.lastIndexOf(".") + 1);
+//                    Log.e(TAG, "prefix: " + prefix);
+//                    for (int i = 0; i < 255; i++) {
+//                        String testIp = prefix + String.valueOf(i);
+//                        InetAddress name = InetAddress.getByName(testIp);
+//                        String hostName = name.getCanonicalHostName();
+//                        if (name.isReachable(1000))
+//                            Log.e(TAG, "Host:" + hostName);
+//                    }
+//                }
+//            } catch (Throwable t) {
+//                Log.e(TAG, "Well that's not good.", t);
+//            }
+//            return null;
+//        }
+//    }
 }
 
