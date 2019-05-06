@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
@@ -16,24 +15,26 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.username.remotecontrol.actions.Request;
 import com.example.username.remotecontrol.connections.ClientSocketConnection;
-import com.example.username.remotecontrol.connections.NetworkServices;
+import com.example.username.remotecontrol.connections.NetworkServiceManager;
+import com.example.username.remotecontrol.connections.DiscoveryServiceListener;
+import com.example.username.remotecontrol.custom_views.DeviceAdapter;
+import com.example.username.remotecontrol.entities.NetworkDevice;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
+import javax.jmdns.ServiceInfo;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "myLogs";
@@ -53,8 +54,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static volatile ClientSocketConnection client;
 
-    EditText txtIPAddress;
+    private static volatile List<NetworkDevice> devices;
+
+    private static volatile NetworkServiceManager serviceManager;
+
     ImageButton btnRecord;
+    Spinner spnIPAddress;
 
     private static Context mainContext;
 
@@ -68,22 +73,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addListener(){
-        Log.d(TAG, getPackageName());
         btnRecord = (ImageButton)findViewById(R.id.btnRecord);
-        txtIPAddress = (EditText)findViewById(R.id.txtIPAddress);
+        spnIPAddress = (Spinner) findViewById(R.id.spnIPAddress);
 
-        AsyncTask<Void, Void, List<String>> scanningTask = new AsyncTask<Void, Void, List<String>>() {
+        AsyncTask<Void, NetworkDevice, Void> scanningTask = new AsyncTask<Void, NetworkDevice, Void>() {
             @Override
-            protected List<String> doInBackground(Void... voids) {
-                NetworkServices services = new NetworkServices(getApplicationContext());
-                return services.discoveryServices();
+            protected Void doInBackground(Void... voids) {
+                devices = new ArrayList<>();
+                serviceManager = new NetworkServiceManager(getApplicationContext());
+                serviceManager.discoveryServices(new DiscoveryServiceListener() {
+                    @Override
+                    public void onFound(NetworkDevice device) {
+                        devices.add(device);
+                        Log.d(TAG, devices.toString());
+                        publishProgress(devices.stream().toArray(NetworkDevice[]::new));
+                    }
+
+                    @Override
+                    public void onRemoved(NetworkDevice device) {
+                        devices.remove(device);
+                        if(!devices.isEmpty()) {
+                            Log.d(TAG, devices.toString());
+                        } else {
+                            Log.d(TAG, "Is empty");
+                        }
+                        publishProgress(devices.stream().toArray(NetworkDevice[]::new));
+                    }
+                });
+                return null;
             }
 
             @Override
-            protected void onPostExecute(List<String> devices) {
-                for (String device : devices) {
-                    Log.d(TAG, device);
-                }
+            protected void onProgressUpdate(NetworkDevice ... values) {
+                DeviceAdapter adapter = new DeviceAdapter(getApplicationContext(), Arrays.asList(values));
+                adapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+                spnIPAddress.setAdapter(adapter);
             }
         };
 
@@ -92,36 +116,17 @@ public class MainActivity extends AppCompatActivity {
         //Request Runtime Permission
         if(!checkPermissionFromDevice()) requestPermission();
 
-        txtIPAddress.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if(txtIPAddress.getText().toString().matches("(\\d?\\d?\\d?\\.){3}(\\d?\\d?\\d?)")){
-                    txtIPAddress.setTextColor(Color.parseColor("#689eb8"));
-                    HOST_IS_CORRECT = true;
-                } else {
-                    txtIPAddress.setTextColor(Color.parseColor("#e51e2b"));
-                    HOST_IS_CORRECT = false;
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
-        });
-
         btnRecord.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 if(event.getAction() == MotionEvent.ACTION_DOWN){
                     if(checkPermissionFromDevice()){
-                        if(HOST_IS_CORRECT){
-                            speechRecognition();
+                        NetworkDevice selectedDevice = ((NetworkDevice) spnIPAddress.getSelectedItem());
+                        if(selectedDevice != null) {
+                            speechRecognition(selectedDevice);
                         } else {
                             //Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
-                            Toast.makeText(getApplicationContext(), "Incorrect host", Toast.LENGTH_SHORT).show();
-                            Log.d(TAG, "Incorrect host");
+                            Toast.makeText(getApplicationContext(), "No device selected", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         requestPermission();
@@ -137,8 +142,8 @@ public class MainActivity extends AppCompatActivity {
      * Executes the speech recognition
      */
 
-    private void speechRecognition(){
-        client = new ClientSocketConnection(txtIPAddress.getText().toString());
+    private void speechRecognition(NetworkDevice device){
+        client = new ClientSocketConnection(device.getIp());
         AsyncTask<Void, Void, Boolean> connectionTask = new AsyncTask<Void, Void, Boolean>() {
             @Override
             protected Boolean doInBackground(Void... voids) {
@@ -264,7 +269,15 @@ public class MainActivity extends AppCompatActivity {
         return mainContext;
     }
 
-//    private static class NetworkSniffTask extends AsyncTask<Void, Void, Void> {
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(serviceManager != null) {
+            serviceManager.unregisterServices();
+        }
+    }
+
+    //    private static class NetworkSniffTask extends AsyncTask<Void, Void, Void> {
 //        private static final String TAG = "NetworkSniffTask";
 //        private Context localContext;
 //

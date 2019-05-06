@@ -6,20 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <EditText
-        android:id="@+id/txtIPAddress"
-        android:layout_width="210dp"
-        android:layout_height="52dp"
-        android:layout_marginTop="128dp"
-        android:background="@drawable/fields"
-        android:ems="10"
-        android:hint="IP Address"
-        android:padding="20px"
-        android:textColor="#689eb8"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imgLogo" />
-
     <TextView
         android:id="@+id/txtOutput"
         android:layout_width="wrap_content"
@@ -32,13 +18,9 @@
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="55dp"
-        android:layout_marginLeft="55dp"
         android:layout_marginTop="40dp"
-        android:layout_marginEnd="55dp"
-        android:layout_marginRight="55dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -53,8 +35,19 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtIPAddress"
-        app:layout_constraintVertical_bias="0.439"
+        app:layout_constraintTop_toBottomOf="@+id/spnIPAddress"
         app:srcCompat="@drawable/microphone" />
+
+    <Spinner
+        android:id="@+id/spnIPAddress"
+        android:layout_width="250dp"
+        android:layout_height="55dp"
+        android:background="@drawable/fields"
+        app:layout_constraintBottom_toTopOf="@+id/btnRecord"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgLogo"
+        app:layout_constraintVertical_bias="0.26" />
 
 </android.support.constraint.ConstraintLayout>
