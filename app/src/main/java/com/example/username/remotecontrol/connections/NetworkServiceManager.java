@@ -16,8 +16,11 @@ import com.example.username.remotecontrol.entities.NetworkDevice;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.jmdns.JmDNS;
 import javax.jmdns.ServiceEvent;
@@ -32,11 +35,11 @@ public class NetworkServiceManager {
 	private final int PORT = 49151;
 	private final String DEVICE_NAME = Build.MANUFACTURER + " " + Build.MODEL;
 
-	private enum serviceInfoTags {
+	public enum serviceInfoTags {
 		TYPE_TAG, DEVICE_NAME_TAG
 	}
 
-	private enum deviceTypes {
+	public enum deviceTypes {
 		PC, PHONE
 	}
 
@@ -83,44 +86,15 @@ public class NetworkServiceManager {
 			@Override
 			public void serviceRemoved(ServiceEvent event) {
 				ServiceInfo serviceInfo = event.getInfo();
-				Log.d(TAG, serviceInfo.getPropertyString(serviceInfoTags.TYPE_TAG.toString()));
 				Log.d(TAG, "Removed " + serviceInfo.getName());
-				Log.d(TAG, "------------------------");
-				String deviceType = serviceInfo.getPropertyString(serviceInfoTags.TYPE_TAG.toString());
-				String deviceName = serviceInfo.getPropertyString(serviceInfoTags.DEVICE_NAME_TAG.toString());
-				String hostName = serviceInfo.getInetAddresses()[0].getHostAddress();
-
-				Log.d(TAG, deviceType + ":" + deviceName + ":" + hostName);
-
-				NetworkDevice device = new NetworkDevice()
-						.setType(deviceType)
-						.setName(deviceName)
-						.setIp(hostName);
-
-				Log.d(TAG, String.valueOf(device == null));
-				Log.d(TAG, device.toString());
-
-				if(device.getType().equals(deviceTypes.PC.toString())) {
-					listener.onRemoved(device);
-				}
+				listener.onRemoved(serviceInfo);
 			}
 
 			@Override
 			public void serviceResolved(ServiceEvent event) {
 				ServiceInfo serviceInfo = event.getInfo();
                 Log.d(TAG, "Added " + serviceInfo.getName());
-				String deviceType = serviceInfo.getPropertyString(serviceInfoTags.TYPE_TAG.toString());
-				String deviceName = serviceInfo.getPropertyString(serviceInfoTags.DEVICE_NAME_TAG.toString());
-				String hostName = serviceInfo.getInetAddresses()[0].getHostAddress();
-
-				NetworkDevice device = new NetworkDevice()
-						.setType(deviceType)
-						.setName(deviceName)
-						.setIp(hostName);
-
-				if(device.getType().equals(deviceTypes.PC.toString())) {
-					listener.onFound(device);
-				}
+				listener.onFound(serviceInfo);
 			}
 		};
 		jmDNS.addServiceListener(TYPE, mServiceListener);
@@ -142,6 +116,10 @@ public class NetworkServiceManager {
 		if (mMulticastLock != null && mMulticastLock.isHeld()) {
 			mMulticastLock.release();
 		}
+	}
+
+	public List<ServiceInfo> getCurrentServices(){
+		return Arrays.stream(jmDNS.list(TYPE)).collect(Collectors.toList());
 	}
 
 	private InetAddress getCurrentInetAddress() throws UnknownHostException {

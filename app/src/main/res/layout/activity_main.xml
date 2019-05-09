@@ -42,7 +42,7 @@
         android:id="@+id/spnIPAddress"
         android:layout_width="250dp"
         android:layout_height="55dp"
-        android:background="@drawable/fields"
+        android:background="@drawable/spinner"
         app:layout_constraintBottom_toTopOf="@+id/btnRecord"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"

@@ -2,10 +2,14 @@ package com.example.username.remotecontrol.actions;
 
 import android.util.Log;
 
+import com.example.username.remotecontrol.entities.NetworkDevice;
+import com.example.username.remotecontrol.entities.NetworkNode;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
@@ -24,7 +28,7 @@ public class Request {
         this.socket = socket;
     }
 
-    public String execute(String command) throws IOException {
+    public String execute(NetworkDevice device, String data) throws IOException {
         String message = null;
         FutureTask<String> task = new FutureTask(new Callable<String>() {
             @Override
@@ -33,10 +37,12 @@ public class Request {
                 try (
                     OutputStream outputStream = socket.getOutputStream();
                     InputStream inputStream = socket.getInputStream();
-                    PrintWriter writerStream = new PrintWriter(outputStream, true);
+                    ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+//                    PrintWriter writerStream = new PrintWriter(outputStream, true);
                     BufferedReader readerStream = new BufferedReader(new InputStreamReader(inputStream, "cp1251"));
                 ) {
-                    writerStream.println(command);
+                    NetworkNode node = new NetworkNode(device, data);
+                    objectOutputStream.writeObject(node);
                     callback = readerStream.readLine();
                 } catch (IOException e) {
                     callback = "Request was interrupted...";

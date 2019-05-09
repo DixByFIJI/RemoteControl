@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.jmdns.ServiceInfo;
 
@@ -54,22 +55,18 @@ public class MainActivity extends AppCompatActivity {
 
     private static volatile ClientSocketConnection client;
 
-    private static volatile List<NetworkDevice> devices;
+    private static volatile List<ServiceInfo> services;
 
     private static volatile NetworkServiceManager serviceManager;
 
     ImageButton btnRecord;
     Spinner spnIPAddress;
 
-    private static Context mainContext;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mainContext = getApplicationContext();
         addListener();
-        PACKAGE = getPackageName();
     }
 
     public void addListener(){
@@ -79,25 +76,44 @@ public class MainActivity extends AppCompatActivity {
         AsyncTask<Void, NetworkDevice, Void> scanningTask = new AsyncTask<Void, NetworkDevice, Void>() {
             @Override
             protected Void doInBackground(Void... voids) {
-                devices = new ArrayList<>();
                 serviceManager = new NetworkServiceManager(getApplicationContext());
                 serviceManager.discoveryServices(new DiscoveryServiceListener() {
                     @Override
-                    public void onFound(NetworkDevice device) {
-                        devices.add(device);
-                        Log.d(TAG, devices.toString());
-                        publishProgress(devices.stream().toArray(NetworkDevice[]::new));
+                    public void onFound(ServiceInfo serviceInfo) {
+                        services = serviceManager.getCurrentServices();
+                        services.removeIf(service -> service.getPropertyString(NetworkServiceManager.serviceInfoTags.TYPE_TAG.toString())
+                                .equals(NetworkServiceManager.deviceTypes.PHONE.toString()));
+
+                        NetworkDevice[] devices = services.stream().map(service -> {
+                            String deviceType = service.getPropertyString(NetworkServiceManager.serviceInfoTags.TYPE_TAG.toString());
+                            String deviceName = service.getPropertyString(NetworkServiceManager.serviceInfoTags.DEVICE_NAME_TAG.toString());
+                            String hostName = service.getInetAddresses()[0].getHostAddress();
+                            return new NetworkDevice()
+                                    .setType(deviceType)
+                                    .setName(deviceName)
+                                    .setIp(hostName);
+                        }).toArray(NetworkDevice[]::new);
+
+                        publishProgress(devices);
                     }
 
                     @Override
-                    public void onRemoved(NetworkDevice device) {
-                        devices.remove(device);
-                        if(!devices.isEmpty()) {
-                            Log.d(TAG, devices.toString());
-                        } else {
-                            Log.d(TAG, "Is empty");
-                        }
-                        publishProgress(devices.stream().toArray(NetworkDevice[]::new));
+                    public void onRemoved(ServiceInfo serviceInfo) {
+                        services = serviceManager.getCurrentServices();
+                        services.removeIf(service -> service.getPropertyString(NetworkServiceManager.serviceInfoTags.TYPE_TAG.toString())
+                                .equals(NetworkServiceManager.deviceTypes.PHONE.toString()));
+
+                        NetworkDevice[] devices = services.stream().map(service -> {
+                            String deviceType = service.getPropertyString(NetworkServiceManager.serviceInfoTags.TYPE_TAG.toString());
+                            String deviceName = service.getPropertyString(NetworkServiceManager.serviceInfoTags.DEVICE_NAME_TAG.toString());
+                            String hostName = service.getInetAddresses()[0].getHostAddress();
+                            return new NetworkDevice()
+                                    .setType(deviceType)
+                                    .setName(deviceName)
+                                    .setIp(hostName);
+                        }).toArray(NetworkDevice[]::new);
+
+                        publishProgress(devices);
                     }
                 });
                 return null;
@@ -125,13 +141,13 @@ public class MainActivity extends AppCompatActivity {
                         if(selectedDevice != null) {
                             speechRecognition(selectedDevice);
                         } else {
-                            //Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show();
                             Toast.makeText(getApplicationContext(), "No device selected", Toast.LENGTH_SHORT).show();
                         }
                     } else {
                         requestPermission();
                     }
                 } else if(event.getAction() == MotionEvent.ACTION_UP){
+
                 }
                 return false;
             }
@@ -207,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
                             Request query = new Request(client.getClientSocket());
                             String message = null;
                             try {
-                                message = query.execute(command);
+                                message = query.execute(device, command);
                             } catch (IOException e) {
                                 message = "Execution interrupted...";
                                 Log.d(TAG, message, e);
@@ -265,55 +281,12 @@ public class MainActivity extends AppCompatActivity {
                read_external_storage_result == PackageManager.PERMISSION_GRANTED;
     }
 
-    public static Context getMainContext(){
-        return mainContext;
-    }
-
     @Override
-    protected void onStop() {
-        super.onStop();
-        if(serviceManager != null) {
+    protected void onDestroy() {
+        super.onDestroy();
+        if (serviceManager != null) {
             serviceManager.unregisterServices();
         }
     }
-
-    //    private static class NetworkSniffTask extends AsyncTask<Void, Void, Void> {
-//        private static final String TAG = "NetworkSniffTask";
-//        private Context localContext;
-//
-//        private NetworkSniffTask(Context context) {
-//            localContext = context;
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void ... voids) {
-//            Log.e(TAG, "Let's sniff the network");
-//            try {
-//                Context context = localContext;
-//                if (context != null) {
-//                    ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-//                    NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-//                    WifiManager wm = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-//                    WifiInfo connectionInfo = wm.getConnectionInfo();
-//                    int ipAddress = connectionInfo.getIpAddress();
-//                    String ipString = Formatter.formatIpAddress(ipAddress);
-//                    Log.e(TAG, "activeNetwork: " + String.valueOf(activeNetwork));
-//                    Log.e(TAG, "ipString: " + String.valueOf(ipString));
-//                    String prefix = ipString.substring(0, ipString.lastIndexOf(".") + 1);
-//                    Log.e(TAG, "prefix: " + prefix);
-//                    for (int i = 0; i < 255; i++) {
-//                        String testIp = prefix + String.valueOf(i);
-//                        InetAddress name = InetAddress.getByName(testIp);
-//                        String hostName = name.getCanonicalHostName();
-//                        if (name.isReachable(1000))
-//                            Log.e(TAG, "Host:" + hostName);
-//                    }
-//                }
-//            } catch (Throwable t) {
-//                Log.e(TAG, "Well that's not good.", t);
-//            }
-//            return null;
-//        }
-//    }
 }
 

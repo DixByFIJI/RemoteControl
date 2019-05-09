@@ -5,7 +5,7 @@
     android:paddingTop="12dp"
     android:paddingRight="15dp"
     android:paddingLeft="10dp"
-    android:background="@drawable/fields">
+    android:background="@drawable/spinner">
 
     <TextView
         android:id="@+id/txtSelectedServiceName"
